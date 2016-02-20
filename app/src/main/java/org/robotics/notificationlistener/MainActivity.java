@@ -12,10 +12,12 @@ import android.text.Html;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     TableLayout tab;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
             String title = intent.getStringExtra("title");
             String text = intent.getStringExtra("text");
 
+            Toast.makeText(getApplicationContext(),text,Toast.LENGTH_SHORT).show();
 
             TableRow tr = new TableRow(getApplicationContext());
             tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));

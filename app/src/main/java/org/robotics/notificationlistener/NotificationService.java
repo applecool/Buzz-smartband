@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 /**
  * Created by ShellZero on 2/20/16.
@@ -36,7 +37,7 @@ public class NotificationService extends NotificationListenerService{
         Log.i("Package",pack);
         Log.i("Ticker",ticker);
         Log.i("Title",title);
-        Log.i("Text",text);
+        Log.i("Text", text);
 
         Intent msgrcv = new Intent("Msg");
         msgrcv.putExtra("package", pack);
@@ -45,6 +46,8 @@ public class NotificationService extends NotificationListenerService{
         msgrcv.putExtra("text", text);
 
         LocalBroadcastManager.getInstance(context).sendBroadcast(msgrcv);
+
+        Toast.makeText(getApplicationContext(),"TEST DID IT WORK?", Toast.LENGTH_SHORT);
 
 
     }
