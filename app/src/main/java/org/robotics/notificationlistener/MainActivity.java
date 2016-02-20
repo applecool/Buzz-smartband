@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -31,11 +32,13 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import android.os.Handler;
+import java.util.logging.LogRecord;
 
 public class MainActivity extends AppCompatActivity {
 
     TableLayout tab;
-    private Toolbar toolbar;
+    private Toolbar toolbar, bottomBar;
     private static final String TAG = "MainActivity";
 
     // UUIDs for UAT service and associated characteristics.
@@ -50,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView messages;
     private EditText input;
 
+    private Handler handler;
+
     // BTLE state
     private BluetoothAdapter adapter;
     private BluetoothGatt gatt;
@@ -63,6 +68,12 @@ public class MainActivity extends AppCompatActivity {
             super.onConnectionStateChange(gatt, status, newState);
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 writeLine("Connected!");
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        setBluetoothConnectedText(true);
+                    }
+                });
                 // Discover services.
                 if (!gatt.discoverServices()) {
                     writeLine("Failed to start discovering services!");
@@ -70,6 +81,12 @@ public class MainActivity extends AppCompatActivity {
             }
             else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 writeLine("Disconnected!");
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        setBluetoothConnectedText(false);
+                    }
+                });
             }
             else {
                 writeLine("Connection state changed.  New state: " + newState);
@@ -154,11 +171,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
         setSupportActionBar(toolbar);
+        bottomBar = (Toolbar) findViewById(R.id.toolbar_bottom);
+        handler = new Handler();
+        setBluetoothConnectedText(false);
+
         Window window = this.getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+
         //window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
-        tab = (TableLayout) findViewById(R.id.tab);
+        //tab = (TableLayout) findViewById(R.id.tab);
         if(!MyAccessibilityService.isAccessibilitySettingsOn(this)) {
             //Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
             //startActivityForResult(intent, 0);
@@ -207,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
             textview.setTextColor(Color.parseColor("#0B0719"));
             textview.setText(Html.fromHtml(pack + "<br><b>" + title + " : </b>" + text));
             tr.addView(textview);
-            tab.addView(tr);
+            //tab.addView(tr);
 
             Log.v(TAG, "Received message");
             Log.v(TAG, "intent.getAction() :: " + intent.getAction());
@@ -328,6 +351,18 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
+    public void setBluetoothConnectedText(boolean on){
+        TextView mTitle = (TextView) bottomBar.findViewById(R.id.bottom_title);
+        if (!on) {
+            mTitle.setText("BlUETOOTH DISCONNECTED");
+            mTitle.setTextColor(Color.RED);
+        } else {
+            mTitle.setText("BLUETOOTH CONNECTED");
+            mTitle.setTextColor(Color.GREEN);
+        }
+    }
+
 }
 
 
