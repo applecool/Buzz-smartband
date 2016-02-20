@@ -3,7 +3,6 @@ package org.robotics.notificationlistener;
 import java.util.List;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
