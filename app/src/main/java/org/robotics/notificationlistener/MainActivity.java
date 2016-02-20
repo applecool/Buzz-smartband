@@ -10,7 +10,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
                         setBluetoothConnectedText(true);
                     }
                 });
+                adapter.stopLeScan(scanCallback);
                 // Discover services.
                 if (!gatt.discoverServices()) {
                     writeLine("Failed to start discovering services!");
@@ -86,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
                         setBluetoothConnectedText(false);
                     }
                 });
+                adapter.startLeScan(scanCallback);
             }
             else {
                 writeLine("Connection state changed.  New state: " + newState);
@@ -149,17 +154,23 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter.LeScanCallback scanCallback = new BluetoothAdapter.LeScanCallback() {
         // Called when a device is found.
         @Override
-        public void onLeScan(BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
-            writeLine("Found device: " + bluetoothDevice.getAddress());
-            // Check if the device has the UART service.
-            if (parseUUIDs(bytes).contains(UART_UUID)) {
-                // Found a device, stop the scan.
-                adapter.stopLeScan(scanCallback);
-                writeLine("Found UART service!");
-                // Connect to the device.
-                // Control flow will now go to the callback functions when BTLE events occur.
-                gatt = bluetoothDevice.connectGatt(getApplicationContext(), false, callback);
-            }
+        public void onLeScan(final BluetoothDevice bluetoothDevice, int i, final byte[] bytes) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    writeLine("Found device: " + bluetoothDevice.getAddress());
+                    // Check if the device has the UART service.
+                    if (parseUUIDs(bytes).contains(UART_UUID)) {
+                        // Found a device, stop the scan.
+                        adapter.stopLeScan(scanCallback);
+                        writeLine("Found UART service!");
+                        // Connect to the device.
+                        // Control flow will now go to the callback functions when BTLE events occur.
+                        gatt = bluetoothDevice.connectGatt(getApplicationContext(), false, callback);
+                    }
+                }
+            });
+          thread.start();
         }
     };
 
@@ -218,15 +229,26 @@ public class MainActivity extends AppCompatActivity {
 
            // Toast.makeText(getApplicationContext(),text,Toast.LENGTH_SHORT).show();
 
+            final PackageManager pm = getApplicationContext().getPackageManager();
+            ApplicationInfo ai;
+            try {
+                ai = pm.getApplicationInfo( pack, 0);
+            } catch (final PackageManager.NameNotFoundException e) {
+                ai = null;
+            }
+            final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "(unknown)");
+
             TableRow tr = new TableRow(getApplicationContext());
             tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
             TextView textview = new TextView(getApplicationContext());
             textview.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
             textview.setTextSize(20);
             textview.setTextColor(Color.parseColor("#0B0719"));
-            textview.setText(Html.fromHtml(pack + "<br><b>" + title + " : </b>" + text));
+            textview.setText(Html.fromHtml(applicationName + "<br><b>" + title + " : </b>" + text));
             tr.addView(textview);
             tab.addView(tr);
+
+            handleMessageReceived(applicationName, text);
 
             Log.v(TAG, "Received message");
             Log.v(TAG, "intent.getAction() :: " + intent.getAction());
@@ -235,6 +257,16 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public void handleMessageReceived(String sender, String message){
+        message = message.toLowerCase();
+        if (sender.equalsIgnoreCase("MAPS")){
+            if (message.contains("left") && message.contains("50")){
+                sendBTMessage("10");
+            }else if(message.contains("right") && message.contains("50")){
+                sendBTMessage("01");
+            }
+        }
+    }
     // OnResume, called right before UI is displayed.  Start the BTLE connection.
     @Override
     protected void onResume() {
@@ -273,6 +305,19 @@ public class MainActivity extends AppCompatActivity {
         else {
             writeLine("Couldn't write TX characteristic!");
         }
+    }
+
+    public boolean sendBTMessage(String message){
+        if (tx == null || message == null)
+            return false;
+        tx.setValue(message);
+        if (gatt.writeCharacteristic(tx)) {
+            writeLine("Sent: " + message);
+            return true;
+        } else {
+            writeLine("Failed to Send: "+ message);
+        }
+        return false;
     }
 
     // Write some text to the messages text view.
