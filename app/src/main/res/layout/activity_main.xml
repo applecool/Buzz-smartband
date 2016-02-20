@@ -10,6 +10,7 @@
         android:id="@+id/tool_bar"
         layout="@layout/tool_bar"
         />
+    <include layout="@layout/content_main" />
 
     <ScrollView
         android:layout_width="match_parent"

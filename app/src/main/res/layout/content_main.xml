@@ -11,4 +11,39 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="org.robotics.notificationlistener.MainActivity"
     tools:showIn="@layout/activity_main">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Messages" />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="Send"
+        android:onClick="sendClick"/>
+
+    <EditText
+        android:id="@+id/input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/send"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/send"
+        android:layout_alignParentBottom="true">
+
+        <TextView
+            android:id="@+id/messages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom" />
+
+    </ScrollView>
 </RelativeLayout>
