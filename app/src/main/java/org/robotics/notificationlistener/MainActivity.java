@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             if (text == null)
                     text =  intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_MESSAGE);
 
-            Toast.makeText(getApplicationContext(),text,Toast.LENGTH_SHORT).show();
+           // Toast.makeText(getApplicationContext(),text,Toast.LENGTH_SHORT).show();
 
             TableRow tr = new TableRow(getApplicationContext());
             tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -65,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
             textview.setText(Html.fromHtml(pack + "<br><b>" + title + " : </b>" + text));
             tr.addView(textview);
             tab.addView(tr);
-            Toast.makeText(getApplicationContext(),"TEESTSETESTSET",Toast.LENGTH_SHORT);
 
             Log.v(TAG, "Received message");
             Log.v(TAG, "intent.getAction() :: " + intent.getAction());
