@@ -19,7 +19,7 @@ import android.view.accessibility.AccessibilityEvent;
 /**
  * This service class catches Toast or Notification of applications
  *
- * @author pankaj
+ * @author cameron
  */
 public class MyAccessibilityService extends AccessibilityService {
 
