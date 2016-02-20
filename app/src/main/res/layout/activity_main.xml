@@ -15,8 +15,19 @@
         android:id="@+id/main_content"
         android:layout_below="@+id/tool_bar"
         layout="@layout/content_main"
-        android:layout_height="300dp"
+        android:layout_height="145dp"
         android:layout_width="match_parent"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/main_content">
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/tab" />
+    </ScrollView>
 
 
 

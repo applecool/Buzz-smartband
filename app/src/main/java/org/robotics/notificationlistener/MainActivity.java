@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     TableLayout tab;
     private Toolbar toolbar, bottomBar;
+    private boolean connected = false;
     private static final String TAG = "MainActivity";
 
     // UUIDs for UAT service and associated characteristics.
@@ -181,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
 
         //window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
-        //tab = (TableLayout) findViewById(R.id.tab);
+        tab = (TableLayout) findViewById(R.id.tab);
         if(!MyAccessibilityService.isAccessibilitySettingsOn(this)) {
             //Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
             //startActivityForResult(intent, 0);
@@ -230,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
             textview.setTextColor(Color.parseColor("#0B0719"));
             textview.setText(Html.fromHtml(pack + "<br><b>" + title + " : </b>" + text));
             tr.addView(textview);
-            //tab.addView(tr);
+            tab.addView(tr);
 
             Log.v(TAG, "Received message");
             Log.v(TAG, "intent.getAction() :: " + intent.getAction());
@@ -354,8 +355,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void setBluetoothConnectedText(boolean on){
         TextView mTitle = (TextView) bottomBar.findViewById(R.id.bottom_title);
+        connected = on;
         if (!on) {
-            mTitle.setText("BlUETOOTH DISCONNECTED");
+            mTitle.setText("BLUETOOTH DISCONNECTED");
             mTitle.setTextColor(Color.RED);
         } else {
             mTitle.setText("BLUETOOTH CONNECTED");
