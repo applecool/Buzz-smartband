@@ -15,13 +15,15 @@
         android:id="@+id/main_content"
         android:layout_below="@+id/tool_bar"
         layout="@layout/content_main"
-        android:layout_height="145dp"
-        android:layout_width="match_parent"/>
+        android:layout_height="200dp"
+        android:layout_width="match_parent" />
 
     <ScrollView
+        android:layout_above="@+id/toolbar_bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/main_content">
+        android:id="@+id/scrollView"
+        android:layout_below="@+id/main_content">
 
         <TableLayout
             android:layout_width="match_parent"

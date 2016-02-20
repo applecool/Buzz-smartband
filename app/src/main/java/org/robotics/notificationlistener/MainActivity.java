@@ -258,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     public void handleMessageReceived(String sender, String message){
+        Log.d("TEST","Message Handler");
         message = message.toLowerCase();
         if (sender.equalsIgnoreCase("MAPS")){
             if (message.contains("left") && message.contains("50")){
