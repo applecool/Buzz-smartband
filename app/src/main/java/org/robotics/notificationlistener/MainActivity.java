@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -43,6 +44,10 @@ import android.os.Handler;
 public class MainActivity extends AppCompatActivity {
 
     TableLayout tab;
+
+    public final String prefenceKey = "org.robotics.notificationlistener.PREFERENCES";
+
+    SharedPreferences pref;
     private Toolbar toolbar, bottomBar;
     private boolean connected = false;
     private static final String TAG = "MainActivity";
@@ -78,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         bottomBar = (Toolbar) findViewById(R.id.toolbar_bottom);
         handler = new Handler();
+        pref = this.getPreferences(Context.MODE_PRIVATE);
         setBluetoothConnectedText(false);
 
         Window window = this.getWindow();
@@ -113,12 +119,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        //tab = (TableLayout) findViewById(R.id.tab);
-
-
-        // Grab references to UI elements.
-        //messages = (TextView) findViewById(R.id.messages);
-        //input = (EditText) findViewById(R.id.input);
+        final IntentFilter mIntentFilter = new IntentFilter(MyAccessibilityService.Constants.ACTION_CATCH_NOTIFICATION);
+        mIntentFilter.addAction(MyAccessibilityService.Constants.ACTION_CATCH_TOAST);
+        registerReceiver(onNotice, mIntentFilter);
+        Log.v(TAG, "Receiver registered.");
+        LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, mIntentFilter /*new IntentFilter("Msg")*/);
 
         adapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -246,14 +251,42 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void handleMessageReceived(String sender, String message){
-        Log.d("TEST","Message Handler");
+       // Log.d("TEST","Message Handler");
+        Log.d(TAG, "Received message from "+ sender);
+
+        final PackageManager pm = getPackageManager();
+        ApplicationInfo ai;
+        try {
+            ai = pm.getApplicationInfo( sender, 0);
+        } catch (final PackageManager.NameNotFoundException e) {
+            ai = null;
+        }
+        String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "(unknown)");
+
+        Fragment f = (Fragment) pagerAdapter.instantiateItem(viewPager, 0);
+        if (f instanceof NotificationsFragment && message != null) {
+            ((NotificationsFragment) f).addNotificationRow(applicationName,message);
+        }
+
+        applicationName = applicationName.toLowerCase();
         message = message.toLowerCase();
-        if (sender.equalsIgnoreCase("MAPS")){
+        sender = sender.toLowerCase();
+
+        if (!pref.getBoolean(applicationName,false))
+            return;
+
+        if (sender.equalsIgnoreCase("maps")){
             if (message.contains("left") && message.contains("50")){
-                sendBTMessage("10");
+                vibrate("left", 1000,0);
+                vibrate("left", 1000,500);
             }else if(message.contains("right") && message.contains("50")){
-                sendBTMessage("01");
+                vibrate("right", 1000,0);
+                vibrate("left", 1000,500);
             }
+        }
+
+        else {
+            vibrate("both", 3000,0);
         }
     }
     // OnResume, called right before UI is displayed.  Start the BTLE connection.
@@ -300,6 +333,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean sendBTMessage(String message){
+        Log.d(TAG, "Sending BT Message: " + message);
         if (tx == null || message == null)
             return false;
         tx.setValue(message);
@@ -319,13 +353,10 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Fragment page = getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":" + viewPager.getCurrentItem());
-                // based on the current position you can then cast the page to the correct
-                // class and call the method:
                 Fragment f = (Fragment) pagerAdapter.instantiateItem(viewPager, viewPager.getCurrentItem());
                 if (f instanceof RawBTFragment && f != null && text != null) {
-                        ((RawBTFragment) f).addMessage(text.toString());
-                        Log.d(TAG, text.toString());
+                    ((RawBTFragment) f).addMessage(text.toString());
+                    Log.d(TAG, text.toString());
                 }
             }
         });
@@ -402,6 +433,56 @@ public class MainActivity extends AppCompatActivity {
             mTitle.setTextColor(Color.GREEN);
         }
     }
+
+    public void vibrate(String side, int millis, int delay){
+        String payload = "00";
+        if (side.equalsIgnoreCase("left")){
+            payload = "01";
+        }else if (side.equalsIgnoreCase("right")){
+            payload = "10";
+        }
+        else if (side.equalsIgnoreCase("both")){
+            payload = "11";
+        }
+        final String pl = payload;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                sendBTMessage(pl);
+            }
+        }, delay);
+        sendBTMessage(payload);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                sendBTMessage("00");
+            }
+        }, millis);
+    }
+
+    private BroadcastReceiver onNotice = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String pack = intent.getStringExtra("package");
+            String title = intent.getStringExtra("title");
+            String text = intent.getStringExtra("text");
+
+            if (pack == null)
+                pack = intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_PACKAGE);
+            if (text == null)
+                text =  intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_MESSAGE);
+
+
+
+            handleMessageReceived(pack, text);
+
+            Log.v(TAG, "Received message");
+            Log.v(TAG, "intent.getAction() :: " + intent.getAction());
+            Log.v(TAG, "intent.getStringExtra(Constants.EXTRA_PACKAGE) :: " + intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_PACKAGE));
+            Log.v(TAG, "intent.getStringExtra(Constants.EXTRA_MESSAGE) :: " + intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_MESSAGE));
+        }
+    };
 
 }
 

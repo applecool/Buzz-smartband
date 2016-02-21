@@ -6,8 +6,66 @@
     android:layout_height="match_parent"
     >
 
+
+<RelativeLayout
+    android:id="@+id/boxes"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="@dimen/activity_vertical_margin"
+    android:layout_marginBottom="@dimen/activity_vertical_margin"
+    >
+
+
+    <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/checkbox_height"
+            android:text="Maps Turn by Turn Navigation"
+            android:id="@+id/checkBoxMaps"
+            android:layout_alignParentStart="true"
+        />
+
+
+    <CheckBox
+        android:layout_below="@+id/checkBoxMaps"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/checkbox_height"
+        android:text="SMS Notifications"
+        android:id="@+id/checkBoxSMS"
+        android:layout_alignParentStart="true" />
+
+    <CheckBox
+        android:layout_below="@+id/checkBoxSMS"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/checkbox_height"
+        android:text="Facebook Messenger Notifications"
+        android:id="@+id/checkBoxFacebook"
+        android:layout_alignParentStart="true" />
+
+
+    <CheckBox
+        android:layout_below="@+id/checkBoxFacebook"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/checkbox_height"
+        android:text="GroupMe Notifications"
+        android:id="@+id/checkBoxGroupMe"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>
+
+    <View
+        android:layout_below="@id/boxes"
+        android:id="@+id/firstDivider"
+        android:layout_height="2dp"
+        android:layout_width="fill_parent"
+        android:background="@color/colorPrimaryDark" />
+
+
     <ScrollView
-        android:layout_above="@+id/toolbar_bottom"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:layout_below="@+id/firstDivider"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/scrollView">
@@ -18,6 +76,7 @@
             android:id="@+id/tab" />
     </ScrollView>
 
-
 </RelativeLayout>
+
+
 
