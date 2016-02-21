@@ -11,25 +11,22 @@
         layout="@layout/tool_bar"
         />
 
-    <include
-        android:id="@+id/main_content"
-        android:layout_below="@+id/tool_bar"
-        layout="@layout/content_main"
-        android:layout_height="200dp"
-        android:layout_width="match_parent" />
-
-    <ScrollView
-        android:layout_above="@+id/toolbar_bottom"
+    <android.support.design.widget.TabLayout
+        android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/scrollView"
-        android:layout_below="@+id/main_content">
+        android:layout_below="@+id/tool_bar"
+        android:background="?attr/colorPrimary"
+        android:elevation="6dp"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/tab" />
-    </ScrollView>
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/tab_layout"
+        android:layout_above="@+id/toolbar_bottom" />
 
 
 

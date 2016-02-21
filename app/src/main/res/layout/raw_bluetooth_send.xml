@@ -8,15 +8,15 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="org.robotics.notificationlistener.MainActivity"
-    tools:showIn="@layout/activity_main">
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="4dp"
         android:text="Messages"
         android:textSize="16sp"
+        android:layout_marginBottom="10dp"
         android:textIsSelectable="true"
         android:id="@+id/textView" />
 
@@ -25,9 +25,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Send"
-        android:onClick="sendClick"
-        android:layout_alignBottom="@+id/input"
-        android:layout_alignEnd="@+id/scrollView" />
+        android:layout_alignTop="@+id/input"
+        android:layout_alignParentEnd="true" />
 
     <EditText
         android:id="@+id/input"
@@ -38,17 +37,16 @@
         android:layout_alignParentStart="true"
         android:layout_toStartOf="@+id/send" />
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/send"
-        android:id="@+id/scrollView">
 
-        <TextView
+
+        <ListView
+            android:layout_below="@+id/input"
             android:id="@+id/messages"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom" />
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            />
 
-    </ScrollView>
+
+
 </RelativeLayout>

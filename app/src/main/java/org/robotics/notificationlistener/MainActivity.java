@@ -14,8 +14,12 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -52,8 +56,11 @@ public class MainActivity extends AppCompatActivity {
     public static UUID CLIENT_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     // UI elements
-    private TextView messages;
-    private EditText input;
+    //private TextView messages;
+    //private EditText input;
+    private ViewPager viewPager;
+    private PagerAdapter pagerAdapter;
+
 
     private Handler handler;
 
@@ -62,6 +69,60 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothGatt gatt;
     private BluetoothGattCharacteristic tx;
     private BluetoothGattCharacteristic rx;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
+        setSupportActionBar(toolbar);
+        bottomBar = (Toolbar) findViewById(R.id.toolbar_bottom);
+        handler = new Handler();
+        setBluetoothConnectedText(false);
+
+        Window window = this.getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.addTab(tabLayout.newTab().setText("Notifications"));
+        tabLayout.addTab(tabLayout.newTab().setText("Raw BT Msg"));
+        tabLayout.addTab(tabLayout.newTab().setText("Marco Polo"));
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+
+        viewPager = (ViewPager) findViewById(R.id.pager);
+        pagerAdapter = new PagerAdapter
+                (getSupportFragmentManager(), tabLayout.getTabCount());
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+        //tab = (TableLayout) findViewById(R.id.tab);
+
+
+        // Grab references to UI elements.
+        //messages = (TextView) findViewById(R.id.messages);
+        //input = (EditText) findViewById(R.id.input);
+
+        adapter = BluetoothAdapter.getDefaultAdapter();
+
+    }
 
     private BluetoothGattCallback callback = new BluetoothGattCallback() {
         // Called whenever the device connection state changes, i.e. from disconnected to connected.
@@ -175,87 +236,14 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
-        setSupportActionBar(toolbar);
-        bottomBar = (Toolbar) findViewById(R.id.toolbar_bottom);
-        handler = new Handler();
-        setBluetoothConnectedText(false);
-
-        Window window = this.getWindow();
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        tab = (TableLayout) findViewById(R.id.tab);
-        if(!MyAccessibilityService.isAccessibilitySettingsOn(this)) {
-            //Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            //startActivityForResult(intent, 0);
-        }
-        final IntentFilter mIntentFilter = new IntentFilter(MyAccessibilityService.Constants.ACTION_CATCH_NOTIFICATION);
-        mIntentFilter.addAction(MyAccessibilityService.Constants.ACTION_CATCH_TOAST);
-        //mIntentFilter.addAction("Msg");
-        registerReceiver(onNotice, mIntentFilter);
-        Log.v(TAG, "Receiver registered.");
-        LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, mIntentFilter /*new IntentFilter("Msg")*/);
-
-        // Grab references to UI elements.
-        messages = (TextView) findViewById(R.id.messages);
-        input = (EditText) findViewById(R.id.input);
-
-        adapter = BluetoothAdapter.getDefaultAdapter();
-
-    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(onNotice);
+        //unregisterReceiver(onNotice);
     }
 
-    private BroadcastReceiver onNotice = new BroadcastReceiver() {
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String pack = intent.getStringExtra("package");
-            String title = intent.getStringExtra("title");
-            String text = intent.getStringExtra("text");
-
-            if (pack == null)
-                    pack = intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_PACKAGE);
-            if (text == null)
-                    text =  intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_MESSAGE);
-
-           // Toast.makeText(getApplicationContext(),text,Toast.LENGTH_SHORT).show();
-
-            final PackageManager pm = getApplicationContext().getPackageManager();
-            ApplicationInfo ai;
-            try {
-                ai = pm.getApplicationInfo( pack, 0);
-            } catch (final PackageManager.NameNotFoundException e) {
-                ai = null;
-            }
-            final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "(unknown)");
-
-            TableRow tr = new TableRow(getApplicationContext());
-            tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-            TextView textview = new TextView(getApplicationContext());
-            textview.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
-            textview.setTextSize(20);
-            textview.setTextColor(Color.parseColor("#0B0719"));
-            textview.setText(Html.fromHtml(applicationName + "<br><b>" + title + " : </b>" + text));
-            tr.addView(textview);
-            tab.addView(tr);
-
-            handleMessageReceived(applicationName, text);
-
-            Log.v(TAG, "Received message");
-            Log.v(TAG, "intent.getAction() :: " + intent.getAction());
-            Log.v(TAG, "intent.getStringExtra(Constants.EXTRA_PACKAGE) :: " + intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_PACKAGE));
-            Log.v(TAG, "intent.getStringExtra(Constants.EXTRA_MESSAGE) :: " + intent.getStringExtra(MyAccessibilityService.Constants.EXTRA_MESSAGE));
-        }
-    };
 
     public void handleMessageReceived(String sender, String message){
         Log.d("TEST","Message Handler");
@@ -292,8 +280,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     // Handler for mouse click on the send button.
-    public void sendClick(View view) {
-        String message = input.getText().toString();
+
+
+
+    public void sendClick(String message) {
+        //String message = input.getText().toString();
         if (tx == null || message == null || message.isEmpty()) {
             // Do nothing if there is no device or message to send.
             return;
@@ -328,8 +319,14 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                messages.append(text);
-                messages.append("\n");
+                Fragment page = getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":" + viewPager.getCurrentItem());
+                // based on the current position you can then cast the page to the correct
+                // class and call the method:
+                Fragment f = (Fragment) pagerAdapter.instantiateItem(viewPager, viewPager.getCurrentItem());
+                if (f instanceof RawBTFragment && f != null && text != null) {
+                        ((RawBTFragment) f).addMessage(text.toString());
+                        Log.d(TAG, text.toString());
+                }
             }
         });
     }
